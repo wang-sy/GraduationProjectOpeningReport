@@ -1,0 +1,116 @@
+\documentclass{article}
+\usepackage[UTF8]{ctex}
+\usepackage[breaklinks,colorlinks,linkcolor=black,citecolor=black,urlcolor=black]{hyperref}
+  
+%% 设置封面格式
+\title{毕业设计（论文）开题报告\protect\\集群管理与调度系统研究与实现}
+\author{王赛宇 20184199}
+\begin{document}
+\maketitle
+
+% section 1, 课题任务及意义
+\section{课题任务及意义}
+
+% subsection 1.1, 课题任务
+\subsection{课题任务}
+  集群管理与调度系统是一种微服务场景下的服务发布、运维系统。本课
+题要求借助已有工具设计并实现一用于支持校内学生进行微服务开发的集
+群管理与调度系统，具体完成的任务包括：
+    （1）查阅资料学习现有的集群管理与调度系统；
+    （2）针对校内微服务开发场景，设计系统功能；
+    （3）使用Golang，借助已有工具实现微服务的发布、运维等功能；
+    （4）使用Vue，提供友好的操作页面，供开发人员使用；
+  本课题要求阅读大量的文献资料，熟悉实际开发、上线流程，掌握Golang、
+Kubernetes\cite{kubernetes}、Helm、Docker\cite{dockerContainer}、
+Devops\cite{devopsForDeveloper}等知识与工具并在实践中应用。
+
+% subsection 1.2, 课题研究意义
+\subsection{课题研究意义}
+
+\subsubsection{传统软件开发运维模式及其局限性}
+  随着互联网的高速发展，各企业规模日益扩张，所涉及的应用领域也愈
+发广泛。按照以往的方式，企业需要雇佣专业的运维人员来对服务器上的环
+境进行维护和管理。随着业务的扩张，需要投入大量人力以确保应用正常运
+行，还需要人为的对服务器的io、内存、cpu资源进行划分，从而减少资源
+浪费现象。因此企业应用部署困难、资源浪费的的问题亟待解决。\cite{cloudExtend}
+
+  单体软件开发方法是以往的行业惯例。开发人员管理着庞大的代码仓
+库，任何编码更改都会影响整个系统，因此必须仔细协调和测试这些更改\cite{cloudNativeVSMonolithicApplications}，
+这导致软件的发布周期较长。在发布版本时，单体软件必须重新部署整
+个应用程序。单体软件难以根据单个功能模块的访问量来确定占用资源大
+小，面对个别接口访问量突增时只能通过增加机器数量保证所有服务可用。
+
+\subsubsection{微服务开发模式及其解决的问题}
+  微服务架构风格是一种将单个应用程序开发为一组小服务的方法，每个
+小服务都在自己的进程中运行，并通过轻量级机制（通常是 HTTP 协议 
+API）进行通信\cite{microservicesSummary}。在微服务架构中，不同的服务之间互不耦合，可以单独修改、
+发布。
+
+  容器是完整运行时环境的虚拟实例，它承载程序或微服务并允许其独
+立于底层基础设施运行。通过这种方法，可以轻松地分离硬件和软件组件，
+保证应用程序跨不同系统的完全可移植性。在使用容器的微服务架构团队
+中，开发人员可以专注于业务逻辑和应用程序依赖关系，而运维团队可以专
+注于部署和管理。
+
+  微服务架构通过将大型单体服务拆分为多个小服务分别维护的方法，解
+决了单体软件中仓库巨大、变更“牵一发而动全身”的问题，在某一服务的
+访问量激增时，运维人员可以仅针对某一服务进行扩容；容器的引入使得运
+维人员在进行实际部署时，不再考虑同一台机器上复杂的依赖关系。根据
+Kong最近的一项调查\cite{kongMicroserviceRepoert}，84\% 的美国公司已经将微服务用于应用程序开
+发，89\% 的受访 IT 经理认为，向这种新架构模型的过渡使他们在未来具有
+竞争优势。
+
+\subsubsection{集群管理与调度系统及其意义}
+  在实际生产过程中，运维人员不会通过容器管理工具对服务的每一个
+实例进行逐一管理，而是通过集群管理与调度系统（下称系统）进行半自动
+化管理，运维人员将服务的描述信息提交到系统，随后系统自动完成服务的
+部署、重启、复制、伸缩等功能。系统减少了运维人员的重复劳动，在复杂
+集群中混部服务时不再需要人为的对服务器的资源进行划分，增加了资源的
+利用率。微服务、容器、devops这三板斧，组成了一个高效、易于维护的
+新型开发、部署、运维生态“云原生”。
+
+  但是云原生往往难以落地，问题出现在devops（特别是集群管理与调
+度系统）本身的复杂特性上。虽然该类系统提供了看似完美的自动化运维功
+能，但同时这类系统学习曲线陡峭，需要学习繁杂的系统概念、提供复杂的
+配置文件。在校园乃至小型公司中，很难有能够熟练掌握此类系统的人才。
+因此，本课题意在提供一个概念简单、易于上手的轻量级集群管理与调度系
+统，以降低大学校园内开发者的上手门槛，降低其入门云原生开发的难度。
+
+% subsection 1.3, 研究现状分析
+\subsection{研究现状分析}
+
+% section 2, 重点研究内容及技术实现途径
+\section{重点研究内容及技术实现途径}
+
+% section 2.1, 重点研究内容
+\subsection{重点研究内容}
+
+% section 2.2, 技术实现途径
+\subsection{技术实现途径}
+
+
+% section 3, 课题预期成果
+\section{课题预期成果}
+
+% section 3.1, 课题预期成果
+\subsection{课题预期成果}
+
+% section 3.2, 课题预期特色
+\subsection{课题预期特色}
+
+% section 4, 进度计划
+\section{进度计划}
+
+% section 5, 参考文献
+\section{参考文献}
+\begin{thebibliography} {99}
+    \bibitem{kubernetes} Burns B , Grant B , Oppenheimer D , et al. Borg, Omega, and Kubernetes[J]. Communications of the ACM, 2016, 59(5):50-57.
+    \bibitem{dockerContainer} Bernstein D . Containers and Cloud: From LXC to Docker to Kubernetes[J]. Cloud Computing, IEEE, 2014, 1(3):81-84.
+    \bibitem{devopsForDeveloper} M Hüttermann. DevOps for Developers[M]. Apress, 2012.
+    \bibitem{cloudExtend} 李渊. 基于云计算的 Web 应用部署与扩容系统[D].华中科技大学,2012:5.
+    \bibitem{cloudNativeVSMonolithicApplications} SPARKFABRIK. Microservices and Cloud Native Applications vs. Monolithic Applications[EB/OL].(8 October 2021)[5 December 2021]. https://blog.sparkfabrik.com/en/microservices-and-cloud-native-applications-vs-monolithic-applications
+    \bibitem{microservicesSummary} James Lewis , Martin Fowler. Microservices a definition of this new architectural term[EB/OL].(25 March 2014)[5 December 2021]. https://martinfowler.com/articles/microservices.html
+    \bibitem{kongMicroserviceRepoert} Kong. 2021 Digital Innovation Benchmark[EB/OL].(2021)[5 December 2021] https://konghq.com/resources/digital-innovation-benchmark-202
+\end{thebibliography}
+
+\end{document}
