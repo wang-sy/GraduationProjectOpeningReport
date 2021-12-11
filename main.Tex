@@ -1,7 +1,8 @@
 \documentclass{article}
 \usepackage[UTF8]{ctex}
 \usepackage[breaklinks,colorlinks,linkcolor=black,citecolor=black,urlcolor=black]{hyperref}
-  
+\usepackage{graphicx}
+
 %% 设置封面格式
 \title{毕业设计（论文）开题报告\protect\\集群管理与调度系统研究与实现}
 \author{王赛宇 20184199}
@@ -76,8 +77,72 @@ Kong最近的一项调查\cite{kongMicroserviceRepoert}，84\% 的美国公司�
 因此，本课题意在提供一个概念简单、易于上手的轻量级集群管理与调度系
 统，以降低大学校园内开发者的上手门槛，降低其入门云原生开发的难度。
 
-% subsection 1.3, 研究现状分析
-\subsection{研究现状分析}
+% subsection 1.3, 国内外发展现状
+\subsection{国内外发展现状}
+\subsubsection{敏捷开发：极限编程与gitflow}
+  传统的瀑布模型无法解决互联网应用中模糊的、变动性强的业务需
+求。《敏捷软件开发宣言》\cite{manifestoForAgile}于2001年提出，这是一种周期性的、以人
+为核心的、循序渐进的开发过程模型，它假设客户对产品需求的认知是模糊
+的，提倡先编写软件原型，再根据实际场景对软件进行修正并再次发布版
+本。极限编程(Extreme Programming)\cite{extremeProgramming}是一套从敏捷开发实践中总结出
+的方法论，它指出应当将项目分解为迭代并用迭代机会驱动每个迭代，在开
+发过程中需要优先编写测试用例，完成每个迭代后需要及时运行单元测试
+并合入主干。
+
+  开发者往往用git\cite{git}工具管理代码，git可以从远程仓库拉取代码进行
+开发，并在开发完成后将修改推送回远端仓库。git提供了强大的分支模型，
+开发者可以从主分支中fork个人分支独立开发并在开发完成后合入主分支。
+gitflow\cite{gitflow}是一种git工作流，它根据敏捷开发流程对分支进行区分：
+\begin{itemize}
+  \item \textbf{Master} 分支存储正式版本，只从其他分支合入，不允许直接提交；
+  \item \textbf{Develop} 分支集成测试最新合入的开发成果；
+  \item \textbf{Feature} 分支用于开发人员提交代码并进行自测，自测完成后通过
+    Release分支合入Master分支；
+  \item \textbf{Release} 分支用于发布版本；
+  \item \textbf{Hotfix} 用于修复线上问题；
+\end{itemize}
+
+  使用gitflow工作流的团队会频繁的执行Feature分支到Develop分支
+的合并操作，代码合入Develop前需要运行单元测试、接口测试，合入
+Develop后，需要将最新版本的服务发布到测试环境中进行试运行。在这样
+的工作流程下，人工测试、运维方式已经无法满足日益频繁的合入需求。
+
+\subsubsection{Devops}
+  敏捷开发落地需要自动化工具支持，DevOps是为了更好地解决研发和
+运维之间的关系而提出的。它通过自动化工具完成项目的分布、部署、运维
+等操作，使得开发人员可以高频的、流畅的完成代码提交、构建并投入下一
+轮迭代。
+\begin{figure}[ht]
+  \centering
+  \includegraphics{figures/devops_flow.jpg}
+  \caption{Devops开发循环\cite{devops}}
+  \label{fig:label}
+\end{figure}
+
+  它将软件的开发流程描述为由八个阶段组成的闭环（如图1所示），环
+左侧的任务通过产品人员驱动、开发人员完成，环右侧的任务通过Devops
+工具完成。
+
+\subsubsection{Docker与Kubernetes}
+  传统的云服务通过硬件虚拟化技术将一台服务器虚拟化为多台虚拟机，
+每台虚拟机上都将运行一个操作系统，应用程序直接运行在操作系统上。应
+用程序的依赖需要由运维人员手动安装，这导致项目部署困难，拓展性差。
+
+  namespace\cite{linuxNamespace}是Linux内核用来隔离内核资源的方式，它通过分组隔
+离的方式让一些进程只能看到与自己相关的一部分资源，通过namespace
+机制可以对用户、UTS、IPC、网络等资源进行隔离。Cgroup\cite{linuxCgroup}是linux
+内核用来限制进程资源的机制，通过这种机制，可以实现对Linux进程或
+进程组的资源限制、隔离和统计功能。
+  
+dotCloud公司的Docker将应用程序与其依赖打包，在部署时，应用程
+序及其依赖以进程的形式运行在宿主机上，底层通过namespace与cgroup
+进行隔离与限制。Docker可以降低安装依赖带来的运维成本，同时以进程
+为核心的轻量虚拟化技术降低了性能损耗。
+  
+  k8s(kubernetes)是由Google开源的容器编排工具，它提供了一个可弹
+性运行分布式系统的框架，它提供了服务发现和负载均衡、存储编排、自动
+部署和回滚、自我修复等重要功能，Docker可以作为k8s的容器运行时系
+统。
 
 % section 2, 重点研究内容及技术实现途径
 \section{重点研究内容及技术实现途径}
@@ -111,6 +176,14 @@ Kong最近的一项调查\cite{kongMicroserviceRepoert}，84\% 的美国公司�
     \bibitem{cloudNativeVSMonolithicApplications} SPARKFABRIK. Microservices and Cloud Native Applications vs. Monolithic Applications[EB/OL].(8 October 2021)[5 December 2021]. https://blog.sparkfabrik.com/en/microservices-and-cloud-native-applications-vs-monolithic-applications
     \bibitem{microservicesSummary} James Lewis , Martin Fowler. Microservices a definition of this new architectural term[EB/OL].(25 March 2014)[5 December 2021]. https://martinfowler.com/articles/microservices.html
     \bibitem{kongMicroserviceRepoert} Kong. 2021 Digital Innovation Benchmark[EB/OL].(2021)[5 December 2021] https://konghq.com/resources/digital-innovation-benchmark-202
-\end{thebibliography}
+    \bibitem{manifestoForAgile}agilemanifesto.org . Manifesto for Agile Software Development[EB/OL].(2001)[11 December 2021] http://agilemanifesto.org/iso/en/manifesto.html
+    \bibitem{cicdRedHeat}Red Hat. What is CI/CD?[EB/OL].(31 January 2018)[11 December 2021] https://www.redhat.com/en/topics/devops/what-is-ci-cd
+    \bibitem{extremeProgramming}Martin Fowler. The New Methodology[EB/OL].(13 December 2005)[11 December 2021] https://martinfowler.com/articles/newMethodology.html 
+    \bibitem{git}git. git[EB/OL].(2021)[11 December 2021] https://git-scm.com/
+    \bibitem{gitflow}Vincent Driessen . A successful Git branching model[EB/OL].(05 January  2010)[11 December 2021] https://nvie.com/posts/a-successful-git-branching-model/
+    \bibitem{devops}黄敏珍.CMMI、敏捷开发和DevOps在项目管理实践中的应用[J].项目管理技术,2020,18(09):91-95.
+    \bibitem{linuxNamespace}Michael Kerrisk. namespaces(7) — Linux manual page[EB/OL].(27 August 2021)[11 December 2021] https://man7.org/linux/man-pages/man7/namespaces.7.html
+    \bibitem{linuxCgroup}Michael Kerrisk. cgroups(7) — Linux manual page[EB/OL].(27 August 2021)[11 December 2021] https://man7.org/linux/man-pages/man7/cgroups.7.html
+  \end{thebibliography}
 
 \end{document}
