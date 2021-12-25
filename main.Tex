@@ -145,13 +145,70 @@ dotCloud公司的Docker将应用程序与其依赖打包，在部署时，应用
 统。
 
 % section 2, 重点研究内容及技术实现途径
-\section{重点研究内容及技术实现途径}
+\section{重点内容及技术实现途径}
 
-% section 2.1, 重点研究内容
-\subsection{重点研究内容}
-
+% section 2.1, 重点内容
+\subsection{重点内容}
+  本项目致力于实现一个易于使用的项目上线平台，该平台针对开发人员
+的项目上线行为进行分析，通过已有工具重点解决集群部署、上线、维护
+过程中：
+（1）容器编排、资源限制、访问隔离等问题；
+（2）项目上线时的配置信息获取问题；
+（3）线上环境中，基础设施组件部署问题；
+（4）线上问题排查功能；
 % section 2.2, 技术实现途径
 \subsection{技术实现途径}
+  针对上述的四个问题，本节中一一讨论实现途径。
+
+\subsubsection{容器发布、资源限制、访问隔离实现途径}
+  用户在开发完成后，需要将自己的项目打包为Docker镜像，再通过本
+平台发布。发布过程中，用户需要指定：服务的名称、容器的副本数量、对
+外暴露的端口、容器的环境变量。平台在接收到用户的请求后，会创建
+Kubernetes中的Deployment\cite{Deployments}资源，用于实现容器的部署与编排。在部署
+过程中，平台也会将环境变量注入容器，并对容器占用的内存、CPU、IO等
+资源进行限制。
+
+  到此为止，容器部署的基础功能已经实现。平台接收到用户的部署请求
+后，会将多个Pod\cite{Pods}部署在集群中。但是Pod之间只能通过Pod在集群中的
+VirtualIP进行访问。因此平台会根据用户给出的服务名称，在集群中创建
+Kubernetes中的无头服务（Headless Service\cite{Service}）资源。Kubernetes在检测到
+Headless Service资源后，会将ServiceName到PodIPs的映射关系记录到
+CoreDNS中。 相同项目下的其他服务想要访问该服务可以直接通过
+ServiceName:prot的形式访问，同时，不同项目下服务无法直接访问，这是
+由于每一个项目拥有一个独立的Namespace，CoreDNS在默认情况下无法
+跨Namespace解析。
+
+  当需要跨项目访问时，本平台提供两种方案：（1）通过Ingress\cite{Ingress}资源，将
+服务暴露到外网访问，其他项目直接通过外网访问；（2）通过ExternalName\cite{ClusterNetWork}
+资源，将服务暴露给集群内的所有项目访问，达到跨Namespace访问的目
+的；和本平台合作的微服务网关项目会提供第三种方案，即通过网关进行访
+问，这种方案的优势在于可以进行更细粒度的访问控制。
+
+\subsubsection{项目上线时的配置信息获取}
+  程序在初始化过程中往往需要配置信息的支持，一般Web项目需要连
+接数据库，这就需要数据库的用户名、密码、主机名、端口号、数据库名和
+其他配置信息。这些信息有一定的私密性，无法直接存储在代码仓库或直接
+硬编码在代码中。因此，需要本平台提供动态的配置文件管理功能，平台将
+依托Kubernetes的ConfigMap\cite{ConfigMaps}记录用户给出的多个配置文件信息，并且
+在容器初始化前通过Path+SubPath直接以文件的形式挂载到用户给出的
+路径下。
+
+\subsubsection{线上环境的基础设施组件}
+  线上环境往往会依赖数据库、缓存、消息队列等基础设施，这类基础设
+施不应该由用户手动部署，而应当由平台直接提供，用户只需要通过ui界
+面就可以完成这类服务的部署与管理。
+
+  本课题准备从Mysql数据库入手，通过Helm创建标准化的Chart，用
+户在UI界面完成Value的编辑后，直接生成相应资源，提交到集群中即可。
+同时，将在集群中部署一Mysql可视化管理工具，解决用户网段不同，无法
+远程连接Mysql数据库的问题。
+
+\subsubsection{线上问题排查功能}
+  开发人员往往会通过Log输出日志，并在出现问题时，通过线上日志
+对问题进行排查。本课题期望借助Kubernetes中的logs功能，捕获相应
+Pod中的日志，并返回给用户，来帮助用户排查线上问题。除此之外，本项目期
+望在前端中嵌入一控制台，并通过WebSocket连接到后端，通过proxy直接访问
+问题容器的shell排查线上问题。
 
 
 % section 3, 课题预期成果
@@ -159,13 +216,35 @@ dotCloud公司的Docker将应用程序与其依赖打包，在部署时，应用
 
 % section 3.1, 课题预期成果
 \subsection{课题预期成果}
-
+  本课题预期成果是一个可用性强的服务上线系统，系统包括完整的前
+后台服务。用户可以通过前端操作，完成项目的发布、更新、扩容、维护等
+操作。
 % section 3.2, 课题预期特色
 \subsection{课题预期特色}
+  微服务化、集群化的开发、管理流程往往在小公司、校园内难以落地。
+这是因为当前主流的Kubernetes等工具体系较为繁杂，集群本身的搭建、
+管理较为困难，因此本课题期望构建一个完整的项目上线、运维系统，降低
+了学生、小公司进行云原生开发的难度。当前计算机专业在校生除去少数的
+算法工程师外，大多数在未来都会从事后台开发、前端开发相关工作。与以
+往学校内的开发流程相比，本系统可以帮助在校生更快的适应新时代开发
+方式。
 
 % section 4, 进度计划
 \section{进度计划}
+\begin{center}
+  \begin{tabular}{|c|c|c|}
+    \hline 序号&起止周次&工作内容\\
+    \hline 1&1周至  2周& 查找文献资料 \\
+    \hline 2&3周至  4周& 学习已有服务发布平台 \\
+    \hline 3&5周至  6周& 设计课题服务发布平台 \\
+    \hline 4&7周至  10周& 实现后台部分 \\
+    \hline 5&11周至 14周& 实现前端部分，撰写论文 \\
+    \hline 6&15周至 16周& 完善论文和程序，参加答辩 \\
+    \hline
+  \end{tabular}
+\end{center}
 
+\newpage
 % section 5, 参考文献
 \section{参考文献}
 \begin{thebibliography} {99}
@@ -184,6 +263,12 @@ dotCloud公司的Docker将应用程序与其依赖打包，在部署时，应用
     \bibitem{devops}黄敏珍.CMMI、敏捷开发和DevOps在项目管理实践中的应用[J].项目管理技术,2020,18(09):91-95.
     \bibitem{linuxNamespace}Michael Kerrisk. namespaces(7) — Linux manual page[EB/OL].(27 August 2021)[11 December 2021] https://man7.org/linux/man-pages/man7/namespaces.7.html
     \bibitem{linuxCgroup}Michael Kerrisk. cgroups(7) — Linux manual page[EB/OL].(27 August 2021)[11 December 2021] https://man7.org/linux/man-pages/man7/cgroups.7.html
+    \bibitem{Deployments}The Kubernetes Authors. Deployments.[EB/OL].(17 September 2021)[25 December 2021] https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
+    \bibitem{Pods}The Kubernetes Authors. Pods.[EB/OL].(17 September 2021)[25 December 2021] https://kubernetes.io/docs/concepts/workloads/pods/
+    \bibitem{Service}The Kubernetes Authors. Service.[EB/OL].(17 September 2021)[25 December 2021] https://kubernetes.io/docs/concepts/services-networking/service/
+    \bibitem{Ingress}The Kubernetes Authors. Ingress.[EB/OL].(17 September 2021)[25 December 2021] https://kubernetes.io/docs/concepts/services-networking/ingress/
+    \bibitem{ClusterNetWork}The Kubernetes Authors. Cluster Networking.[EB/OL].(17 September 2021)[25 December 2021] https://kubernetes.io/docs/concepts/cluster-administration/networking/
+    \bibitem{ConfigMaps}The Kubernetes Authors. ConfigMaps.[EB/OL].(17 September 2021)[25 December 2021] https://kubernetes.io/docs/concepts/configuration/configmap/
   \end{thebibliography}
 
 \end{document}
